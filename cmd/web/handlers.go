@@ -19,8 +19,6 @@ func PingHandler(c echo.Context) error {
 // Real API Call starts here
 
 type decryptRequest struct {
-	// TODO: validate
-	Token        string `json:"api_token"`
 	CipherText   string `json:"asymmetric_ciphertext_b64"`
 	TriggerLimit bool   `json:"over_limit"`
 }
@@ -153,7 +151,7 @@ func DecryptDataHandler(c echo.Context) error {
 	}
 
 	// Log this
-	// TODO: move to go routine/queue
+	// TODO: move to goroutine/queue for performance
 	log.Println("Logging to DB...")
 	APICallLog, err := LogAPICall(DB, APICallLog{
 		request_sha256digest:   requestSha256digest,

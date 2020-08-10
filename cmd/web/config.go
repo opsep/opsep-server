@@ -9,7 +9,6 @@ import (
 )
 
 type Config struct {
-	// TODO: using Prod defaults (except for secure stuff hidden in credentials.yaml)
 	SQLiteFilePath           string `json`
 	SeverHost                string `json`
 	ServerPort               string `json`

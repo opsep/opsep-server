@@ -21,6 +21,5 @@ func main() {
 	// Real route
 	e.POST("/api/v1/decrypt", DecryptDataHandler)
 
-	// TODO: allow changing port via settings/CLI:
 	e.Logger.Fatal(e.Start(CFG.SeverHost + ":" + CFG.ServerPort))
 }
