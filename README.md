@@ -54,7 +54,10 @@ $ curl localhost:8080/api/v1/logs/3632dc12b3b03c4508ce7155941f249a2ec521c000619a
 ```
 (this will look much better if you `|` the results to either `jq` or `python -m json.tool`)
 
-
+Worried about a breach? See all decrypts as CSV:
+```bash
+$ sqlite3 opsep.db -header -csv 'select * from api_calls;'
+```
 
 ### Details
 
@@ -73,7 +76,7 @@ $ for i in {1..99}; do curl [...] "http://localhost:8080/api/v1/decrypt" ; done
 
 #### Create an (insecure) RSA keypair
 ```bash
-$ openssl genrsa -out insecurepriv.pem 4096 && openssl rsa -in insecurepriv.pem -pubout -out insecurepub.crt && openssl pkcs8 -topk8 -nocrypt -inform PEM -outform DER -in insecurepriv.pem -out insecurepriv.formatted
+$ openssl genrsa -out insecure_pem.priv 4096 && openssl rsa -in insecure_pem.priv -pubout -out insecure_crt.pub
 Generating RSA private key, 4096 bit long modulus (2 primes)
 ...........................................++++
 ...............................++++
