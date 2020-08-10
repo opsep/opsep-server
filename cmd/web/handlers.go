@@ -4,7 +4,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"time"
@@ -14,7 +13,7 @@ import (
 
 func PingHandler(c echo.Context) error {
 	log.Println("Hello PingHandler!")
-	return c.String(http.StatusOK, "Ping")
+	return c.String(http.StatusOK, "Pong")
 }
 
 // Real API Call starts here
@@ -91,22 +90,12 @@ func DecryptDataHandler(c echo.Context) error {
 		return c.JSON(http.StatusTooManyRequests, toReturn)
 	}
 
-	// FIXME: insecure, move to environment variable. Also, store on init of app.
-	rsaPrivKeyPEM, err := ioutil.ReadFile("insecurepriv.pem")
-	if err != nil {
-		return HandleAPIError(c, err, APIErrorResponse{
-			ErrName: "MissingPrivateKEK",
-			ErrDesc: "Key Encryption Key for decrypting data not found",
-		})
-	}
-
-	// log.Println("rsaPrivKeyPEM", rsaPrivKeyPEM)
-
 	// Perform decryption
 	plaintextBytes, err := OAEP256AsymmetricDecrypt(
 		cipherTextBytes,
-		rsaPrivKeyPEM,
+		CFG.RSAPrivateKeyBytes,
 	)
+	log.Println("Performed")
 	if err != nil {
 		return HandleAPIError(c, err, APIErrorResponse{
 			ErrName: "DecryptionFail",

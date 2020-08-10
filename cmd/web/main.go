@@ -6,6 +6,7 @@ import (
 )
 
 func main() {
+	InitConfig()
 	InitDB()
 
 	e := echo.New()
@@ -21,5 +22,5 @@ func main() {
 	e.POST("/api/v1/decrypt", DecryptDataHandler)
 
 	// TODO: allow changing port via settings/CLI:
-	e.Logger.Fatal(e.Start(":" + "8080"))
+	e.Logger.Fatal(e.Start(CFG.SeverHost + ":" + CFG.ServerPort))
 }

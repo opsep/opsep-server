@@ -63,8 +63,7 @@ func LogAPICall(db *sql.DB, apiCall APICallLog) (sql.Result, error) {
 func InitDB() {
 	var err error
 
-	// FIXME: make this configurable
-	DB, err = sql.Open("sqlite3", "./opsep.db")
+	DB, err = sql.Open("sqlite3", CFG.SQLiteFilePath)
 	HandleErr(err)
 
 	_, err = createTables(DB)
