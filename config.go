@@ -1,7 +1,10 @@
 package main
 
 import (
+	"crypto/rsa"
+	"crypto/x509"
 	"encoding/json"
+	"encoding/pem"
 	"log"
 	"os"
 	"strconv"
@@ -9,12 +12,12 @@ import (
 )
 
 type Config struct {
-	SQLiteFilePath           string `json`
-	SeverHost                string `json`
-	ServerPort               string `json`
-	RSAPrivateKeyBytes       []byte `json:"-"`
-	DecryptsAllowedPerPeriod int    `json`
-	PeriodInSeconds          int    `json`
+	SQLiteFilePath           string          `json`
+	SeverHost                string          `json`
+	ServerPort               string          `json`
+	RSAPrivKey               *rsa.PrivateKey `json:"-"`
+	DecryptsAllowedPerPeriod int             `json`
+	PeriodInSeconds          int             `json`
 }
 
 // CFG is an exportable single source of truth for config info & secrets
@@ -35,9 +38,15 @@ func InitConfig() {
 	goodRSAPrefix := strings.HasPrefix(RSAPrivateKeyString, "-----BEGIN RSA PRIVATE KEY-----") == true
 	goodRSASuffix := strings.HasSuffix(RSAPrivateKeyString, "-----END RSA PRIVATE KEY-----") == true
 
+	// Basic sanity check:
 	if !goodRSAPrefix || !goodRSASuffix {
 		panic("RSA Private Key Invalid")
 	}
+
+	log.Println("Validating RSA private key...")
+	block, _ := pem.Decode([]byte(RSAPrivateKeyString))
+	privKey, err := x509.ParsePKCS1PrivateKey(block.Bytes)
+	HandleErr(err)
 
 	decryptsPerPeriodStr := defaultRead("DECRYPTS_PER_PERIOD", "100")
 	decryptsPerPeriodInt, err := strconv.Atoi(decryptsPerPeriodStr)
@@ -57,7 +66,7 @@ func InitConfig() {
 		SQLiteFilePath:           defaultRead("SQLITE_FILEPATH", "opsep.db"),
 		SeverHost:                defaultRead("SERVER_HOST", "localhost"),
 		ServerPort:               defaultRead("SERVER_PORT", "80"),
-		RSAPrivateKeyBytes:       []byte(RSAPrivateKeyString),
+		RSAPrivKey:               privKey,
 		DecryptsAllowedPerPeriod: decryptsPerPeriodInt,
 		PeriodInSeconds:          periodInSecondsInt,
 	}

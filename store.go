@@ -10,12 +10,6 @@ import (
 // DB global to pass around
 var DB *sql.DB
 
-func HandleErr(e error) {
-	if e != nil {
-		panic(e)
-	}
-}
-
 type APICallLog struct {
 	request_sha256digest   string
 	request_ip_address     string

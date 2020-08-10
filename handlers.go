@@ -83,7 +83,7 @@ func DecryptDataHandler(c echo.Context) error {
 	// Perform decryption
 	plaintextBytes, err := OAEP256AsymmetricDecrypt(
 		cipherTextBytes,
-		CFG.RSAPrivateKeyBytes,
+		CFG.RSAPrivKey,
 	)
 	log.Println("Performed")
 	if err != nil {
