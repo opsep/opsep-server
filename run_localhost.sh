@@ -1,1 +1,1 @@
-go run ./cmd/web/ --regex=opsep.db
+reflex -s go run ./cmd/web/ --inverse-regex=opsep.db
