@@ -32,12 +32,12 @@ func executeQuery(db *sql.DB, query string) (sql.Result, error) {
 }
 
 func createTables(db *sql.DB) {
-	log.Println("Creating table api_calls (if it doesn't already exist)...")
+	log.Println("Creating api_calls table (if it doesn't already exist)...")
 
 	// Create table
 	query := `
 	CREATE TABLE IF NOT EXISTS api_calls (
-		id SERIAL PRIMARY KEY,
+		id INTEGER PRIMARY KEY,
 		created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
 		request_sha256digest VARCHAR(256) NOT NULL,
 		request_ip_address VARCHAR(256),
@@ -48,13 +48,13 @@ func createTables(db *sql.DB) {
 	HandleErr(err)
 
 	// Indices
-	_, err = executeQuery(db, "CREATE INDEX idx_request_sha256digest ON api_calls (request_sha256digest);")
+	_, err = executeQuery(db, "CREATE INDEX IF NOT EXISTS idx_request_sha256digest ON api_calls (request_sha256digest);")
 	HandleErr(err)
-	_, err = executeQuery(db, "CREATE INDEX idx_request_ip_address ON api_calls (request_ip_address);")
+	_, err = executeQuery(db, "CREATE INDEX IF NOT EXISTS idx_request_ip_address ON api_calls (request_ip_address);")
 	HandleErr(err)
-	_, err = executeQuery(db, "CREATE INDEX idx_request_user_agent ON api_calls (request_user_agent);")
+	_, err = executeQuery(db, "CREATE INDEX IF NOT EXISTS idx_request_user_agent ON api_calls (request_user_agent);")
 	HandleErr(err)
-	_, err = executeQuery(db, "CREATE INDEX idx_response_dsha256digest ON api_calls (response_dsha256digest);")
+	_, err = executeQuery(db, "CREATE INDEX IF NOT EXISTS idx_response_dsha256digest ON api_calls (response_dsha256digest);")
 	HandleErr(err)
 
 }
