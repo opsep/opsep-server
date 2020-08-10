@@ -67,7 +67,7 @@ func InitConfig() {
 	HandleErr(err)
 
 	cfg := Config{
-		SQLiteFilePath:           defaultRead("SQLITE_FILEPATH", "opsep.db"),
+		SQLiteFilePath:           defaultRead("SQLITE_FILEPATH", "opsep.sqlite3"),
 		SeverHost:                defaultRead("SERVER_HOST", "localhost"),
 		ServerPort:               defaultRead("SERVER_PORT", "80"),
 		RSAPrivKey:               privKey,

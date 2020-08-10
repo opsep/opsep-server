@@ -1,4 +1,4 @@
 *.swp
 .DS_Store
-*.db
+*.sqlite3
 symmetric_dek.*

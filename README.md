@@ -56,7 +56,7 @@ $ curl localhost:8080/api/v1/logs/3632dc12b3b03c4508ce7155941f249a2ec521c000619a
 
 Worried about a breach? See all decrypts as CSV:
 ```bash
-$ sqlite3 opsep.db -header -csv 'select * from api_calls;'
+$ sqlite3 opsep.sqlite3 -header -csv 'select * from api_calls;'
 ```
 
 ### Details
