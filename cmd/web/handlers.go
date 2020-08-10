@@ -43,11 +43,6 @@ func DecryptDataHandler(c echo.Context) error {
 		return err
 	}
 
-	// FIXME: validate the API token (perhaps allow no API token though)
-	if request.Token == "" {
-		return c.String(http.StatusOK, "FOO") // FIXME
-	}
-
 	cipherTextBytes, err := base64.StdEncoding.DecodeString(request.CipherText)
 	if err != nil {
 		return HandleAPIError(c, err, APIErrorResponse{
@@ -65,25 +60,22 @@ func DecryptDataHandler(c echo.Context) error {
 	requestSha256digest := SingleSHA256(string(cipherTextBytes))
 	log.Println("requestDigest", requestSha256digest)
 
-	// TODO: check preset rate-limit and enforce it!
-	limiter := getLimiter(request.Token)
-	// "" s the nil value for a string field
-	if request.TriggerLimit == true || limiter.incrementLimiter() == false {
+	if request.TriggerLimit == true || AllowThisDecryption() == false {
 		// TODO: ping out to notify!
 
 		toReturn := decryptResponse{
 			// Do not decrypt
-			Plaintext: "",
+			Plaintext: "", // "" s the nil value for a string field
 
 			// This is fine to return
 			PayloadSha256: requestSha256digest,
 
 			// Limit per window
-			RLLimit: limiter.DecryptsAllowedPerPeriod,
+			RLLimit: GlobalLimiter.DecryptsAllowedPerPeriod,
 			// Remaining per window
 			RLRemaining: 0,
 			// Time (in s) until window resets
-			RLReset: limiter.secondsToExpiry(),
+			RLReset: GlobalLimiter.secondsToExpiry(),
 		}
 
 		log.Println("Returning 429...")
@@ -164,7 +156,6 @@ func DecryptDataHandler(c echo.Context) error {
 	// TODO: move to go routine/queue
 	log.Println("Logging to DB...")
 	APICallLog, err := LogAPICall(DB, APICallLog{
-		token_sha256digest:     DSha256Hex(string(request.Token)),
 		request_sha256digest:   requestSha256digest,
 		request_ip_address:     c.RealIP(),
 		request_user_agent:     c.Request().UserAgent(),
@@ -182,11 +173,11 @@ func DecryptDataHandler(c echo.Context) error {
 		Plaintext:     key_str_to_return,
 		PayloadSha256: requestSha256digest,
 		// Limit per window
-		RLLimit: limiter.DecryptsAllowedPerPeriod,
+		RLLimit: GlobalLimiter.DecryptsAllowedPerPeriod,
 		// Remaining per window
-		RLRemaining: limiter.callsRemaining(),
+		RLRemaining: GlobalLimiter.callsRemaining(),
 		// Time (in s) until window resets
-		RLReset: limiter.secondsToExpiry(),
+		RLReset: GlobalLimiter.secondsToExpiry(),
 	}
 
 	return c.JSON(http.StatusOK, toReturn)

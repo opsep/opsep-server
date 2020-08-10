@@ -41,7 +41,7 @@ $ cat symmetric_dek.asymm_enc | base64 --decode | shasum -a 256
 
 Make an API call to decrypt the file you just made:
 ```bash
-$ time curl -v -X POST localhost:8080/api/v1/decrypt -H 'Content-Type: application/json' -d '{"api_token":"SG-XXXX","asymmetric_ciphertext_b64":"'$(cat symmetric_dek.asymm_enc)'"}'
+$ curl -X POST localhost:8080/api/v1/decrypt -H 'Content-Type: application/json' -d '{"asymmetric_ciphertext_b64":"'$(cat symmetric_dek.asymm_enc)'"}'
 ```
 
 

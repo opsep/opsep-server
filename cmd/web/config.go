@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"log"
 	"os"
 	"strconv"
@@ -9,12 +10,12 @@ import (
 
 type Config struct {
 	// TODO: using Prod defaults (except for secure stuff hidden in credentials.yaml)
-	SQLiteFilePath           string
-	SeverHost                string
-	ServerPort               string
-	RSAPrivateKeyBytes       []byte
-	DecryptsAllowedPerPeriod int
-	PeriodInSeconds          int
+	SQLiteFilePath           string `json`
+	SeverHost                string `json`
+	ServerPort               string `json`
+	RSAPrivateKeyBytes       []byte `json:"-"`
+	DecryptsAllowedPerPeriod int    `json`
+	PeriodInSeconds          int    `json`
 }
 
 // CFG is an exportable single source of truth for config info & secrets
@@ -47,7 +48,7 @@ func InitConfig() {
 	}
 
 	periodInSecondsStr := defaultRead("PERIOD_IN_SECONDS", "600")
-	periodInSecondsInt, err := strconv.Atoi(decryptsPerPeriodStr)
+	periodInSecondsInt, err := strconv.Atoi(periodInSecondsStr)
 	if err != nil {
 		log.Println("Invalid PERIOD_IN_SECONDS", periodInSecondsStr)
 		panic(err)
@@ -61,6 +62,11 @@ func InitConfig() {
 		DecryptsAllowedPerPeriod: decryptsPerPeriodInt,
 		PeriodInSeconds:          periodInSecondsInt,
 	}
+
+	// FIXME: insecure
+	b, err := json.Marshal(cfg)
+	HandleErr(err)
+	log.Println(string(b))
 
 	CFG = &cfg
 }
