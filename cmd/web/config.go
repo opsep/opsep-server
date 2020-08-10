@@ -63,7 +63,7 @@ func InitConfig() {
 		PeriodInSeconds:          periodInSecondsInt,
 	}
 
-	// FIXME: insecure
+	// Log everything except for RSA private key (sensitive):
 	b, err := json.Marshal(cfg)
 	HandleErr(err)
 	log.Println(string(b))
