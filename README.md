@@ -1,3 +1,6 @@
+# Op-Sep: Separate Your Data from your Keys
+Use strong cryptography and simple rate-limting to operationally separate your data from your keys.
+Reduce the damage of data-breaches 100x (and maintain an audit log to measure exposure).
 
 ## Setup
 
