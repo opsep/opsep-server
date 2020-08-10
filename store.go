@@ -62,6 +62,14 @@ func LogAPICall(db *sql.DB, apiCall APICallLog) (sql.Result, error) {
 
 }
 
+func FetchAPICallRecord(requestDSha256 string) (sql.Result, error) {
+	statement, err := DB.Prepare("SELECT id, created_at, request_ip_address, request_user_agent FROM api_calls WHERE request_sha256digest = ?")
+	if err != nil {
+		return nil, err
+	}
+	return statement.Exec(requestDSha256)
+}
+
 // InitDB to be called in main and be gloablly accessible in say views
 func InitDB() {
 	var err error

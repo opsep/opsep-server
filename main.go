@@ -20,6 +20,7 @@ func main() {
 
 	// Real route
 	e.POST("/api/v1/decrypt", DecryptDataHandler)
+	e.GET("/api/v1/logs/:request_dsha256", DecryptRequestLogHandler)
 
 	e.Logger.Fatal(e.Start(CFG.SeverHost + ":" + CFG.ServerPort))
 }

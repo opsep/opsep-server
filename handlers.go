@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/labstack/echo/v4"
@@ -19,7 +20,7 @@ func PingHandler(c echo.Context) error {
 // Real API Call starts here
 
 type decryptRequest struct {
-	CipherText   string `json:"asymmetric_ciphertext_b64"`
+	CipherText   string `json:"key_retrieval_ciphertext"`
 	TriggerLimit bool   `json:"over_limit"`
 }
 
@@ -41,17 +42,19 @@ func DecryptDataHandler(c echo.Context) error {
 		return err
 	}
 
-	cipherTextBytes, err := base64.StdEncoding.DecodeString(request.CipherText)
+	cipherTextBytes, err := base64.StdEncoding.DecodeString(strings.TrimSpace(request.CipherText))
 	if err != nil {
+		log.Println("Ciphertext", request.CipherText)
 		return HandleAPIError(c, err, APIErrorResponse{
 			ErrName: "B64Decode",
-			ErrDesc: "Cannot base64 decode asymmetric_ciphertext_b64"},
+			ErrDesc: "Cannot base64 decode key_retrieval_ciphertext"},
 		)
 	}
 	if len(cipherTextBytes) != 512 {
+		log.Println("cipherTextBytes", cipherTextBytes)
 		return HandleAPIError(c, nil, APIErrorResponse{
 			ErrName: "InvalidLengthCiphertext",
-			ErrDesc: "base64 decoded asymmetric_ciphertext_b64 is not 512 bytes",
+			ErrDesc: "base64 decoded key_retrieval_ciphertext is not 512 bytes",
 		})
 	}
 
@@ -179,4 +182,20 @@ func DecryptDataHandler(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, toReturn)
+}
+
+func DecryptRequestLogHandler(c echo.Context) error {
+
+	requestDSha256 := c.Param("request_dsha256")
+	log.Println("requestDSha256", requestDSha256)
+
+	result, err := FetchAPICallRecord(requestDSha256)
+	if err != nil {
+		log.Println("err", err)
+		return err
+	}
+
+	log.Println("result", result)
+	return c.JSON(http.StatusOK, result)
+
 }

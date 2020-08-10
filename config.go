@@ -48,19 +48,23 @@ func InitConfig() {
 	privKey, err := x509.ParsePKCS1PrivateKey(block.Bytes)
 	HandleErr(err)
 
+	log.Println("Generating corresponding RSA public key...")
+	pubASN1, err := x509.MarshalPKIXPublicKey(&privKey.PublicKey)
+	HandleErr(err)
+	pubBytes := pem.EncodeToMemory(&pem.Block{
+		Type:  "RSA PUBLIC KEY",
+		Bytes: pubASN1,
+	})
+	log.Println("Corresponding Public Key:")
+	log.Println(strings.Replace(string(pubBytes), "\n", "\\n", -1))
+
 	decryptsPerPeriodStr := defaultRead("DECRYPTS_PER_PERIOD", "100")
 	decryptsPerPeriodInt, err := strconv.Atoi(decryptsPerPeriodStr)
-	if err != nil {
-		log.Println("Invalid DECRYPTS_PER_PERIOD", decryptsPerPeriodStr)
-		panic(err)
-	}
+	HandleErr(err)
 
 	periodInSecondsStr := defaultRead("PERIOD_IN_SECONDS", "600")
 	periodInSecondsInt, err := strconv.Atoi(periodInSecondsStr)
-	if err != nil {
-		log.Println("Invalid PERIOD_IN_SECONDS", periodInSecondsStr)
-		panic(err)
-	}
+	HandleErr(err)
 
 	cfg := Config{
 		SQLiteFilePath:           defaultRead("SQLITE_FILEPATH", "opsep.db"),
@@ -71,7 +75,7 @@ func InitConfig() {
 		PeriodInSeconds:          periodInSecondsInt,
 	}
 
-	// Log everything except for RSA private key (sensitive):
+	// Log all configs except for RSA private key (sensitive):
 	b, err := json.Marshal(cfg)
 	HandleErr(err)
 	log.Println(string(b))
