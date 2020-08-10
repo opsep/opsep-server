@@ -44,6 +44,10 @@ $ echo $to_decrypt | base64 --decode | shasum -a 256
 ```
 (your result will be different, as asymmetric encryption uses a randomly generated nonce each time it is run)
 
+Query to see decrypts:
+```bash
+$ curl localhost:8080/api/v1/logs/3632dc12b3b03c4508ce7155941f249a2ec521c000619a345a7a186f7fa9e6f0
+```
 
 
 

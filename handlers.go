@@ -157,10 +157,10 @@ func DecryptDataHandler(c echo.Context) error {
 	// TODO: move to goroutine/queue for performance
 	log.Println("Logging to DB...")
 	APICallLog, err := LogAPICall(DB, APICallLog{
-		request_sha256digest:   requestSha256digest,
-		request_ip_address:     c.RealIP(),
-		request_user_agent:     c.Request().UserAgent(),
-		response_dsha256digest: responseDSHA256DigestHex,
+		RequestSha256Digest:   requestSha256digest,
+		RequestIPAddress:      c.RealIP(),
+		RequestUserAgent:      c.Request().UserAgent(),
+		ResponseDSha256Digest: responseDSHA256DigestHex,
 	})
 	if err != nil {
 		return HandleAPIError(c, nil, APIErrorResponse{
@@ -189,10 +189,12 @@ func DecryptRequestLogHandler(c echo.Context) error {
 	requestDSha256 := c.Param("request_dsha256")
 	log.Println("requestDSha256", requestDSha256)
 
-	result, err := FetchAPICallRecord(requestDSha256)
+	result, err := FetchDecryptionRecord(requestDSha256)
 	if err != nil {
-		log.Println("err", err)
-		return err
+		return HandleAPIError(c, nil, APIErrorResponse{
+			ErrName: "FetchDecryptionRecordError",
+			ErrDesc: err.Error(),
+		})
 	}
 
 	log.Println("result", result)
