@@ -49,7 +49,7 @@ Query to see decrypts:
 $ curl localhost:8080/api/v1/logs/3632dc12b3b03c4508ce7155941f249a2ec521c000619a345a7a186f7fa9e6f0
 [{"id":2,"created_at":"2020-08-10T23:14:40Z","request_ip_address":"127.0.0.1","request_user_agent":"curl/7.64.1"},{"id":3,"created_at":"2020-08-10T23:14:42Z","request_ip_address":"127.0.0.1","request_user_agent":"curl/7.64.1"}]
 ```
-(this will look much better if you `|` the results to either `jq` or `python3 -m json.tool`)
+(this will look much better if you `|` the results to either `jq` or `python -m json.tool`)
 
 
 
