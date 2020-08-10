@@ -14,6 +14,5 @@ type APIErrorResponse struct {
 
 func HandleAPIError(c echo.Context, e error, apiErr APIErrorResponse) error {
 	log.Println("HandleApiError", e, apiErr)
-	// FIXME: update httpstatus
 	return c.JSON(http.StatusBadRequest, apiErr)
 }

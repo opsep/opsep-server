@@ -11,8 +11,6 @@ import (
 	"fmt"
 )
 
-// TODO: performance on this sucks
-
 func SingleSHA256(data string) string {
 	sum := sha256.Sum256([]byte(data))
 	return hex.EncodeToString(sum[:])
@@ -32,6 +30,6 @@ func OAEP256AsymmetricDecrypt(cipherText []byte, rsaPrivKeyPEM []byte) ([]byte, 
 	if err != nil {
 		return []byte(""), fmt.Errorf("rsa.DecryptOAEP: %v", err)
 	}
-	// FIXME: Why is there an extra newline byte!?
+	// TODO: Why is there an extra newline byte!?
 	return bytes.TrimRight(plainText, "\n"), nil
 }

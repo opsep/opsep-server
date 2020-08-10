@@ -2,8 +2,9 @@ package main
 
 import (
 	"database/sql"
-	"fmt"
-	"strconv"
+	"log"
+
+	_ "github.com/mattn/go-sqlite3"
 )
 
 // DB global to pass around
@@ -15,7 +16,17 @@ func HandleErr(e error) {
 	}
 }
 
+type APICallLog struct {
+	token_sha256digest     string
+	request_sha256digest   string
+	request_ip_address     string
+	request_user_agent     string
+	response_dsha256digest string
+}
+
 func createTables(db *sql.DB) (sql.Result, error) {
+	log.Println("Creating table (if it doesn't exist)...")
+
 	statement, err := db.Prepare(`
 CREATE TABLE IF NOT EXISTS api_calls (
     id SERIAL PRIMARY KEY,
@@ -59,39 +70,9 @@ func InitDB() {
 	_, err = createTables(DB)
 	HandleErr(err)
 
-	// FIXME: delete this
-	_, err = LogAPICall(DB,
-		APICallLog{
-			token_sha256digest:     "xxx",
-			request_sha256digest:   "qwer",
-			request_ip_address:     "1.1.1.1",
-			request_user_agent:     "python",
-			response_dsha256digest: "asdf",
-		},
-	)
+	err = DB.Ping()
+	log.Println("Pinging database...")
 	HandleErr(err)
-	fmt.Println("inserted")
-
-	// FIXME: add proper ping of DB check here
-	/*
-		log.Println("Pinging DB for health check...")
-		pingErr := conn.Ping()
-		if pingErr != nil {
-			log.Fatal(pingErr)
-		}
-		log.Println("Ping success!")
-	*/
-
-	// FIXME: delete this
-	rows, err := DB.Query("SELECT id FROM api_calls")
-	HandleErr(err)
-	var id int
-	for rows.Next() {
-		rows.Scan(&id)
-		fmt.Println(strconv.Itoa(id))
-	}
-
-	fmt.Println("Done")
 
 	// TODO: defer close?
 

@@ -41,15 +41,13 @@ func DecryptDataHandler(c echo.Context) error {
 	request := new(decryptRequest)
 	err := c.Bind(request)
 	if err != nil {
-		// FIXME
 		return err
 	}
 
+	// FIXME: validate the API token (perhaps allow no API token though)
 	if request.Token == "" {
 		return c.String(http.StatusOK, "FOO") // FIXME
 	}
-
-	// FIXME: validate the API token
 
 	cipherTextBytes, err := base64.StdEncoding.DecodeString(request.CipherText)
 	if err != nil {
@@ -68,7 +66,7 @@ func DecryptDataHandler(c echo.Context) error {
 	requestSha256digest := SingleSHA256(string(cipherTextBytes))
 	log.Println("requestDigest", requestSha256digest)
 
-	// FIXME: check and enforce rate limiting!
+	// TODO: check preset rate-limit and enforce it!
 	limiter := getLimiter(request.Token)
 	// "" s the nil value for a string field
 	if request.TriggerLimit == true || limiter.incrementLimiter() == false {
@@ -93,11 +91,13 @@ func DecryptDataHandler(c echo.Context) error {
 		return c.JSON(http.StatusTooManyRequests, toReturn)
 	}
 
-	// FIXME: insecure!
-	// FIXME: only works for 1 privkey!
+	// FIXME: insecure, move to environment variable. Also, store on init of app.
 	rsaPrivKeyPEM, err := ioutil.ReadFile("insecurepriv.pem")
 	if err != nil {
-		panic(err) // FIXME
+		return HandleAPIError(c, err, APIErrorResponse{
+			ErrName: "MissingPrivateKEK",
+			ErrDesc: "Key Encryption Key for decrypting data not found",
+		})
 	}
 
 	// log.Println("rsaPrivKeyPEM", rsaPrivKeyPEM)
@@ -126,9 +126,6 @@ func DecryptDataHandler(c echo.Context) error {
 			ErrDesc: err.Error() + string(plaintextBytes),
 		})
 	}
-
-	// FIXME: disable this (insecure)
-	fmt.Println(dat)
 
 	// Extract key from decrypted payload
 	key_to_return, exists := dat["key"]
@@ -178,7 +175,7 @@ func DecryptDataHandler(c echo.Context) error {
 	// TODO: move to go routine/queue
 	log.Println("Logging to DB...")
 	APICallLog, err := LogAPICall(DB, APICallLog{
-		token_sha256digest:     DSha256Hex(string(request.Token)), // FIXME
+		token_sha256digest:     DSha256Hex(string(request.Token)),
 		request_sha256digest:   requestSha256digest,
 		request_ip_address:     c.RealIP(),
 		request_user_agent:     c.Request().UserAgent(),
