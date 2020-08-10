@@ -175,29 +175,22 @@ func DecryptDataHandler(c echo.Context) error {
 	}
 
 	// Log this
-	//
-	// FIXME
-	// FIXME
-	// FIXME
-	//
-	// (TODO: move to go routine/queue)
-	/*
-		APICallLog, err := store.DB.CreateAPICallLog(context.Background(), postgres.CreateAPICallLogParams{
-			TokenID:               AToken.ID,
-			Action:                2, // Decrypt
-			RequestSha256digest:   requestSha256digest,
-			RequestIpAddress:      sql.NullString{String: c.RealIP(), Valid: true},
-			ResponseDsha256digest: responseDSHA256DigestHex,
+	// TODO: move to go routine/queue
+	log.Println("Logging to DB...")
+	APICallLog, err := LogAPICall(DB, APICallLog{
+		token_sha256digest:     DSha256Hex(string(request.Token)), // FIXME
+		request_sha256digest:   requestSha256digest,
+		request_ip_address:     c.RealIP(),
+		request_user_agent:     c.Request().UserAgent(),
+		response_dsha256digest: responseDSHA256DigestHex,
+	})
+	if err != nil {
+		return HandleAPIError(c, nil, APIErrorResponse{
+			ErrName: "DecryptionLoggingError",
+			ErrDesc: "Error Logging Decryption Request",
 		})
-		if err != nil {
-			return HandleAPIError(c, nil, APIErrorResponse{
-				ErrName: "DecryptionLoggingError",
-				ErrDesc: "Error Logging Decryption Request",
-			})
-		}
-		log.Println("APICallLog created", APICallLog)
-
-	*/
+	}
+	log.Println("APICallLog created", APICallLog)
 
 	toReturn := decryptResponse{
 		Plaintext:     key_str_to_return,
