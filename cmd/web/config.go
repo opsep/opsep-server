@@ -3,15 +3,18 @@ package main
 import (
 	"log"
 	"os"
+	"strconv"
 	"strings"
 )
 
 type Config struct {
 	// TODO: using Prod defaults (except for secure stuff hidden in credentials.yaml)
-	SQLiteFilePath     string
-	SeverHost          string
-	ServerPort         string
-	RSAPrivateKeyBytes []byte
+	SQLiteFilePath           string
+	SeverHost                string
+	ServerPort               string
+	RSAPrivateKeyBytes       []byte
+	DecryptsAllowedPerPeriod int
+	PeriodInSeconds          int
 }
 
 // CFG is an exportable single source of truth for config info & secrets
@@ -36,11 +39,27 @@ func InitConfig() {
 		panic("RSA Private Key Invalid")
 	}
 
+	decryptsPerPeriodStr := defaultRead("DECRYPTS_PER_PERIOD", "100")
+	decryptsPerPeriodInt, err := strconv.Atoi(decryptsPerPeriodStr)
+	if err != nil {
+		log.Println("Invalid DECRYPTS_PER_PERIOD", decryptsPerPeriodStr)
+		panic(err)
+	}
+
+	periodInSecondsStr := defaultRead("PERIOD_IN_SECONDS", "600")
+	periodInSecondsInt, err := strconv.Atoi(decryptsPerPeriodStr)
+	if err != nil {
+		log.Println("Invalid PERIOD_IN_SECONDS", periodInSecondsStr)
+		panic(err)
+	}
+
 	cfg := Config{
-		SQLiteFilePath:     defaultRead("SQLITE_FILEPATH", "opsep.db"),
-		SeverHost:          defaultRead("SERVER_HOST", "localhost"),
-		ServerPort:         defaultRead("SERVER_PORT", "80"),
-		RSAPrivateKeyBytes: []byte(RSAPrivateKeyString),
+		SQLiteFilePath:           defaultRead("SQLITE_FILEPATH", "opsep.db"),
+		SeverHost:                defaultRead("SERVER_HOST", "localhost"),
+		ServerPort:               defaultRead("SERVER_PORT", "80"),
+		RSAPrivateKeyBytes:       []byte(RSAPrivateKeyString),
+		DecryptsAllowedPerPeriod: decryptsPerPeriodInt,
+		PeriodInSeconds:          periodInSecondsInt,
 	}
 
 	CFG = &cfg
