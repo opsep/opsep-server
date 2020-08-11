@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/labstack/echo/v4"
+	"gopkg.in/guregu/null.v3"
 )
 
 func StatusHandler(c echo.Context) error {
@@ -122,6 +123,7 @@ func DecryptDataHandler(c echo.Context) error {
 	}
 
 	// Extract deprecate_at from decrypted payload
+	deprecateAtToInsert := null.NewTime(time.Time{}, false)
 	deprecate_at, exists := dat["deprecate_at"]
 	if exists == true {
 
@@ -147,16 +149,34 @@ func DecryptDataHandler(c echo.Context) error {
 				ErrDesc: "Key to decrypt this payload marked as deprecated.",
 			})
 		}
+		deprecateAtToInsert = null.NewTime(deprecate_at_t, true)
+	}
+
+	// Extract client_record_id from decrypted payload
+	clientRecordToInsert := null.NewString("", false)
+	clientRecordID, exists := dat["client_record_id"]
+	if exists == true {
+		// a little confusing, but this must be a string (unknown if client is using INTs or UUIDs)
+		clientRecordIDstr, ok := clientRecordID.(string)
+		if ok == false {
+			return HandleAPIError(c, nil, APIErrorResponse{
+				ErrName: "ClientRecordIDFormatError",
+				ErrDesc: "client_record_id must be a string",
+			})
+		}
+		clientRecordToInsert = null.NewString(clientRecordIDstr, true)
 	}
 
 	// Log this
 	// TODO: move to goroutine/queue for performance
 	log.Println("Logging to DB...")
-	APICallLog, err := LogAPICall(DB, APICallLog{
+	APICallLog, err := LogAPICall(APICallLog{
 		RequestSha256Digest:   requestSha256digest,
 		RequestIPAddress:      c.RealIP(),
 		RequestUserAgent:      c.Request().UserAgent(),
 		ResponseDSha256Digest: DSha256Hex(string(plaintextBytes)),
+		ClientRecordID:        clientRecordToInsert,
+		DeprecateAt:           deprecateAtToInsert,
 	})
 	if err != nil {
 		return HandleAPIError(c, nil, APIErrorResponse{
@@ -185,10 +205,10 @@ func DecryptRequestLogHandler(c echo.Context) error {
 	requestDSha256 := c.Param("request_dsha256")
 	log.Println("requestDSha256", requestDSha256)
 
-	result, err := FetchDecryptionRecord(requestDSha256)
+	result, err := FetchDecryptionRecords(requestDSha256)
 	if err != nil {
 		return HandleAPIError(c, nil, APIErrorResponse{
-			ErrName: "FetchDecryptionRecordError",
+			ErrName: "FetchDecryptionRecordsError",
 			ErrDesc: err.Error(),
 		})
 	}

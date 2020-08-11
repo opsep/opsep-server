@@ -71,14 +71,14 @@ func createTables(db *sqlx.DB) {
 
 }
 
-func LogAPICall(db *sqlx.DB, apiCall APICallLog) (sql.Result, error) {
+func LogAPICall(apiCall APICallLog) (sql.Result, error) {
 	query := `INSERT INTO api_calls (request_sha256digest, request_ip_address, request_user_agent, response_dsha256digest, deprecate_at, client_record_id, risk_multiplier) VALUES (:request_sha256digest, :request_ip_address, :request_user_agent, :response_dsha256digest, :deprecate_at, :client_record_id, :risk_multiplier)`
-	return db.NamedExec(query, apiCall)
+	return DB.NamedExec(query, apiCall)
 
 }
 
-func FetchDecryptionRecord(requestDSha256 string) ([]APICallLog, error) {
-	rows, err := DB.Queryx("SELECT id, created_at, request_sha256digest, request_ip_address, request_user_agent, risk_multiplier FROM api_calls WHERE request_sha256digest = ? ORDER BY id", requestDSha256)
+func FetchDecryptionRecords(requestDSha256 string) ([]APICallLog, error) {
+	rows, err := DB.Queryx("SELECT * FROM api_calls WHERE request_sha256digest = ? ORDER BY id", requestDSha256)
 	if err != nil {
 		return []APICallLog{}, err
 	}

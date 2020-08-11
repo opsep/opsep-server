@@ -48,9 +48,10 @@ $ curl -X POST localhost:8080/api/v1/decrypt -H 'Content-Type: application/json'
 ```
 
 ### Key Deprecation
-Make your data auto-expire at a certain date (not that the data can still be recovered if you have your Key Encryption Key, but it is not accessible via this service:
+Make your data auto-expire at a certain date (not that the data can still be recovered if you have your Key Encryption Key, but it is not defualt accessible via this service):
 ```bash
-$ curl -X POST localhost:8080/api/v1/decrypt -H 'Content-Type: application/json' -d '{"key_retrieval_ciphertext":"'$(echo "{\"key\":\"00000000000000000000000000000000\", \"deprecate_at\":\"2020-01-01T12:00:00Z\"}" | openssl pkeyutl -encrypt -pubin -inkey insecure_certs/crt.pub -pkeyopt rsa_padding_mode:oaep -pkeyopt rsa_oaep_md:sha256 -pkeyopt rsa_mgf1_md:sha256 | base64)'"}'
+$ to_decrypt=$(echo "{\"key\":\"00000000000000000000000000000000\", \"deprecate_at\":\"2020-01-01T12:00:00Z\"}" | openssl pkeyutl -encrypt -pubin -inkey insecure_certs/crt.pub -pkeyopt rsa_padding_mode:oaep -pkeyopt rsa_oaep_md:sha256 -pkeyopt rsa_mgf1_md:sha256 | base64)
+$ curl -X POST localhost:8080/api/v1/decrypt -H 'Content-Type: application/json' -d '{"key_retrieval_ciphertext":"'$(echo $to_decrypt)'"}'
 {"error_name":"DeprecatedDecryptionKeyError","error_description":"Key to decrypt this payload marked as deprecated."}
 ```
 
@@ -78,11 +79,23 @@ $ sqlite3 opsep.sqlite3 -header -csv 'select * from api_calls;'
 ### Details
 
 #### One-Liner
-Test in one-line:
+Regular:
 ```bash
 $ curl -X POST localhost:8080/api/v1/decrypt -H 'Content-Type: application/json' -d '{"key_retrieval_ciphertext":"'$(echo "{\"key\":\"00000000000000000000000000000000\"}" | openssl pkeyutl -encrypt -pubin -inkey insecure_certs/crt.pub -pkeyopt rsa_padding_mode:oaep -pkeyopt rsa_oaep_md:sha256 -pkeyopt rsa_mgf1_md:sha256 | base64)'"}'
 {"key_recovered":"00000000000000000000000000000000","request_sha256":"3632...e6f0","ratelimit_limit":100,"ratelimit_remaining":93,"ratelimit_resets_in":122}
 ```
+
+Expired key:
+```bash
+$ curl -X POST localhost:8080/api/v1/decrypt -H 'Content-Type: application/json' -d '{"key_retrieval_ciphertext":"'$(echo "{\"key\":\"00000000000000000000000000000000\", \"deprecate_at\":\"2020-01-01T12:00:00Z\"}" | openssl pkeyutl -encrypt -pubin -inkey insecure_certs/crt.pub -pkeyopt rsa_padding_mode:oaep -pkeyopt rsa_oaep_md:sha256 -pkeyopt rsa_mgf1_md:sha256 | base64)'"}'
+{"error_name":"DeprecatedDecryptionKeyError","error_description":"Key to decrypt this payload marked as deprecated."}
+```
+
+Fancy:
+```bash
+$ curl -X POST localhost:8080/api/v1/decrypt -H 'Content-Type: application/json' -d '{"key_retrieval_ciphertext":"'$(echo "{\"key\":\"00000000000000000000000000000000\", \"deprecate_at\":\"2030-01-01T12:00:00Z\", \"client_record_id\":\"aaaaaaaa-0000-bbbb-1111-cccccccccccc\"}" | openssl pkeyutl -encrypt -pubin -inkey insecure_certs/crt.pub -pkeyopt rsa_padding_mode:oaep -pkeyopt rsa_oaep_md:sha256 -pkeyopt rsa_mgf1_md:sha256 | base64)'"}'
+```
+
 
 #### Rate-Limit
 If you want a rough test of 429-ing, you can do this:
