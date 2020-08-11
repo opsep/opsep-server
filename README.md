@@ -43,7 +43,7 @@ $ curl localhost:8080
 ```
 
 ### Run Tests
-TODO
+See client info below.
 
 ---
 
@@ -51,8 +51,7 @@ TODO
 
 The proper way to use opsep is with a client library that abstracts away all these complexities.
 The information below is only for advanced users, for example those wishing to write their own client library (perhaps in a new langauge).
-
-FIXME: add link to python library.
+You can check out the python opsep client [here](https://github.com/opsep/opsep-server)
 
 ### Encryption
 
