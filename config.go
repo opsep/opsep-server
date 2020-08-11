@@ -15,7 +15,8 @@ type Config struct {
 	SQLiteFilePath           string          `json`
 	SeverHost                string          `json`
 	ServerPort               string          `json`
-	RSAPrivKey               *rsa.PrivateKey `json:"-"`
+	RSAPrivKey               *rsa.PrivateKey `json:"-"` // exclude from json response
+	RSAPubKey                string          `json`
 	DecryptsAllowedPerPeriod int             `json`
 	PeriodInSeconds          int             `json`
 }
@@ -52,11 +53,9 @@ func InitConfig() {
 	pubASN1, err := x509.MarshalPKIXPublicKey(&privKey.PublicKey)
 	HandleErr(err)
 	pubBytes := pem.EncodeToMemory(&pem.Block{
-		Type:  "RSA PUBLIC KEY",
+		Type:  "PUBLIC KEY",
 		Bytes: pubASN1,
 	})
-	log.Println("Corresponding Public Key:")
-	log.Println(strings.Replace(string(pubBytes), "\n", "\\n", -1))
 
 	decryptsPerPeriodStr := defaultRead("DECRYPTS_PER_PERIOD", "100")
 	decryptsPerPeriodInt, err := strconv.Atoi(decryptsPerPeriodStr)
@@ -71,6 +70,7 @@ func InitConfig() {
 		SeverHost:                defaultRead("SERVER_HOST", "localhost"),
 		ServerPort:               defaultRead("SERVER_PORT", "80"),
 		RSAPrivKey:               privKey,
+		RSAPubKey:                string(pubBytes),
 		DecryptsAllowedPerPeriod: decryptsPerPeriodInt,
 		PeriodInSeconds:          periodInSecondsInt,
 	}

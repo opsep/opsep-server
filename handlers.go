@@ -13,7 +13,7 @@ import (
 )
 
 func StatusHandler(c echo.Context) error {
-	return c.JSON(http.StatusOK, CFG)
+	return c.JSONPretty(http.StatusOK, CFG, "  ")
 }
 
 // Real API Call starts here
