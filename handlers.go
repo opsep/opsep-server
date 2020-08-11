@@ -208,8 +208,7 @@ func DecryptDataHandler(c echo.Context) error {
 	}
 
 	// Log this
-	// TODO: move to goroutine/queue for performance
-	log.Println("Logging to DB...")
+	// TODO: move to goroutine/queue for performance?
 	_, err = LogAPICall(APICallLog{
 		RequestSha256Digest:   requestSha256digest,
 		RequestIPAddress:      c.RealIP(),

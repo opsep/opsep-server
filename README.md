@@ -79,11 +79,11 @@ $ curl -X POST localhost:8080/api/v1/decrypt -H 'Content-Type: application/json'
 }
 ```
 
-### Audit Logging
+### Audit Logging for Decryption Requests
 Note that when inspecting audit logs (individual records or bulk dumps), opsep doesn't store/dump sensitive data.
 
 
-#### Query for Specific Decryptions
+#### Query by Key Retrieval Ciphertext
 Calculate the hash of your decryption instructions:
 ```bash
 $ echo $TO_DECRYPT | base64 --decode | shasum -a 256
@@ -109,6 +109,15 @@ $ curl localhost:8080/api/v1/logs/55a80d54fd68dea27f4186a9f6466082f02af25939546d
 ```
 There could be multiple instances of decrypting that data, as your client might request decryption multiple times.
 
+#### Query by Client Record ID
+Note that this is only possible if the `client_record_id` was originally encrypted as part of the `key_retrieval_ciphertext`.
+```bash
+$ sqlite3 opsep.sqlite3 -header -csv 'SELECT * FROM api_calls WHERE client_record_id = "aaaaaaaa-0000-bbbb-1111-cccccccccccc" LIMIT 2;'
+id,created_at,request_sha256digest,request_ip_address,request_user_agent,response_dsha256digest,deprecate_at,client_record_id,risk_multiplier
+3,"2020-08-11 17:42:54",c188a894fc1bc77ebd5872ec0f49f4d2f5876ea3aa7d6176258ea7d2fc1f0328,127.0.0.1,curl/7.64.1,9dd45edc9bf8afc0f06bd369da7e586169aaa2b0d616a3cdb9974344f7a5cab6,,aaaaaaaa-0000-bbbb-1111-cccccccccccc,
+4,"2020-08-11 17:43:28",78d3ff5f0d6745f904959ef84a301024f6090e44309e6ab0ee195346e83d922e,127.0.0.1,curl/7.64.1,9dd45edc9bf8afc0f06bd369da7e586169aaa2b0d616a3cdb9974344f7a5cab6,,aaaaaaaa-0000-bbbb-1111-cccccccccccc,
+```
+
 #### Dump All Decryption Requests
 
 Worried about a breach? See all decrypts as CSV:
@@ -132,11 +141,40 @@ $ curl -X POST localhost:8080/api/v1/decrypt -H 'Content-Type: application/json'
 ```
 Note that your data can still be recovered if you have your Key Encryption Key, but it is not defualt accessible via this service.
 
-### Client Record ID
-FIXME
-
 ### Risk Multiplier
-FIXME
+Have specific records that you know are extra-sensitive?
+You can make these count as multiple records for the purposes of your rate-limit:
+```
+$ TO_DECRYPT=$(echo "{\"key\":\"00000000000000000000000000000000\", \"risk_multiplier\":10}" | openssl pkeyutl -encrypt -pubin -inkey insecure_certs/crt.pub -pkeyopt rsa_padding_mode:oaep -pkeyopt rsa_oaep_md:sha256 -pkeyopt rsa_mgf1_md:sha256 | base64)
+$ curl -s -X POST localhost:8080/api/v1/decrypt -H 'Content-Type: application/json' -d '{"key_retrieval_ciphertext":"'$(echo $TO_DECRYPT)'"}' | python -m json.tool
+{
+    "key_recovered": "00000000000000000000000000000000",
+    "request_sha256": "33dac6df324b177ce26720eed545f97e69c9bce5e0caa083e62a665996509cec",
+    "ratelimit_limit": 100,
+    "ratelimit_remaining": 90,
+    "ratelimit_resets_in": 599
+}
+```
+`ratelimit_remaining` correctly fell from `100` to `90` in one API decryption requests.
+
+
+### Client Record ID
+Tracking decryption using `key_retrieval_ciphertext` can be cumbersome.
+Even easier, at the time of encryption you can save your local client record ID. Note that regardless of underlying type this must be saved as a string (normal for UUIDs, but counterintuitive for INTs).
+```bash
+$ TO_DECRYPT=$(echo "{\"key\":\"00000000000000000000000000000000\", \"client_record_id\":\"aaaaaaaa-0000-bbbb-1111-cccccccccccc\"}" | openssl pkeyutl -encrypt -pubin -inkey insecure_certs/crt.pub -pkeyopt rsa_padding_mode:oaep -pkeyopt rsa_oaep_md:sha256 -pkeyopt rsa_mgf1_md:sha256 | base64)
+$ curl -s -X POST localhost:8080/api/v1/decrypt -H 'Content-Type: application/json' -d '{"key_retrieval_ciphertext":"'$(echo $TO_DECRYPT)'"}' | python -m json.tool
+{
+    "key_recovered": "00000000000000000000000000000000",
+    "request_sha256": "6e7679934a8122b6f4e91d7a5da09e37dbc31777c714b23294eeb329a3a586cf",
+    "ratelimit_limit": 100,
+    "ratelimit_remaining": 99,
+    "ratelimit_resets_in": 599
+}
+```
+
+What's particularly powerful is that you can query your Opsep server by these IDs.
+See Audit Logging below.
 
 ### Rate-Limit Test
 If you want a rough test of 429-ing, you can do this:
@@ -149,6 +187,13 @@ Run server with a high threshold of decryptions:
 RSA_PRIVATE_KEY="$(cat insecure_certs/pem.priv)" DECRYPTS_PER_PERIOD=99999 go run *.go
 ```
 
+Before and after your load test, query your `sqlite` DB to confirm the correct # of records were inserted:
+```bash
+$ sqlite3 opsep.sqlite3 'SELECT COUNT(1) from api_calls;'
+32743
+```
+
+#### Using Curl
 Make requests as client:
 ```bash
 $ TO_DECRYPT=$(echo "{\"key\":\"00000000000000000000000000000000\"}" | openssl pkeyutl -encrypt -pubin -inkey insecure_certs/crt.pub -pkeyopt rsa_padding_mode:oaep -pkeyopt rsa_oaep_md:sha256 -pkeyopt rsa_mgf1_md:sha256 | base64)
@@ -158,6 +203,62 @@ user	0m0.325s
 sys	0m0.495s
 ```
 (On Windows replace `/dev/null` with `nul`)
+
+#### Using Apache Bench
+Download [ab](https://httpd.apache.org/docs/2.4/programs/ab.html).
+
+
+Note that [you must use `127.0.0.1` instead of `localhost`](https://www.bram.us/2020/02/20/fixing-ab-apachebench-error-apr_socket_connect-invalid-argument-22/).
+```bash
+$ TO_DECRYPT=$(echo "{\"key\":\"00000000000000000000000000000000\"}" | openssl pkeyutl -encrypt -pubin -inkey insecure_certs/crt.pub -pkeyopt rsa_padding_mode:oaep -pkeyopt rsa_oaep_md:sha256 -pkeyopt rsa_mgf1_md:sha256 | base64)
+$ echo "{\"key_retrieval_ciphertext\":\"$( echo $TO_DECRYPT )\"}" > ab.json
+$ ab -p ab.json -T "application/json" -c 2 -n 100 http://127.0.0.1:8080/api/v1/decrypt 
+This is ApacheBench, Version 2.3 <$Revision: 1843412 $>
+Copyright 1996 Adam Twiss, Zeus Technology Ltd, http://www.zeustech.net/
+Licensed to The Apache Software Foundation, http://www.apache.org/
+
+Benchmarking 127.0.0.1 (be patient).....done
+
+
+Server Software:        
+Server Hostname:        127.0.0.1
+Server Port:            8080
+
+Document Path:          /api/v1/decrypt
+Document Length:        213 bytes
+
+Concurrency Level:      2
+Time taken for tests:   0.563 seconds
+Complete requests:      100
+Failed requests:        0
+Total transferred:      33700 bytes
+Total body sent:        86600
+HTML transferred:       21300 bytes
+Requests per second:    177.77 [#/sec] (mean)
+Time per request:       11.250 [ms] (mean)
+Time per request:       5.625 [ms] (mean, across all concurrent requests)
+Transfer rate:          58.50 [Kbytes/sec] received
+                        150.34 kb/s sent
+                        208.85 kb/s total
+
+Connection Times (ms)
+              min  mean[+/-sd] median   max
+Connect:        0    0   0.1      0       1
+Processing:     9   11   1.7     10      15
+Waiting:        9   11   1.7     10      15
+Total:          9   11   1.7     11      15
+
+Percentage of the requests served within a certain time (ms)
+  50%     11
+  66%     12
+  75%     12
+  80%     13
+  90%     14
+  95%     14
+  98%     15
+  99%     15
+ 100%     15 (longest request)
+```
 
 ### One-Liner
 Regular:
@@ -202,3 +303,11 @@ $ curl localhost:8080 | python3 -c "import sys, json; print(json.load(sys.stdin)
 ### Advanced Deployment Options 
 Other environmental variable options include `SQLITE_FILEPATH`, ``SERVER_HOST`, `SERVER_PORT`, `DECRYPTS_PER_PERIOD`, and `PERIOD_IN_SECONDS`.
 See [config.go](config.go) for more info.
+
+
+## HSM
+RSA is compatible with all major HSMs.
+You're on your own for implementating that.
+
+## Help
+File an issue or contact me at opsep@michaelflaxman.com if you're stuck.
