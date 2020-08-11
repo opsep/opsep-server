@@ -23,6 +23,6 @@ func OAEP256AsymmetricDecrypt(cipherText []byte, privKey *rsa.PrivateKey) ([]byt
 	if err != nil {
 		return []byte(""), fmt.Errorf("rsa.DecryptOAEP: %v", err)
 	}
-	// TODO: Why is there an extra newline byte!?
+	// Trim extra newline byte:
 	return bytes.TrimRight(plainText, "\n"), nil
 }

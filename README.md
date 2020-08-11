@@ -16,8 +16,10 @@ $ RSA_PRIVATE_KEY="$(cat insecure_certs/priv.pem)" go run *.go
 ```
 
 ### Test that it's working:
+This will also output the (public) config settings:
 ```bash
-$ curl localhost:8080/ping
+$ curl localhost:8080
+{"SQLiteFilePath":"opsep.sqlite3","SeverHost":"localhost","ServerPort":"8080","DecryptsAllowedPerPeriod":100,"PeriodInSeconds":600}
 ```
 
 ## Use

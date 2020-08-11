@@ -16,7 +16,7 @@ func main() {
 	e.Use(middleware.Recover())
 
 	// Debug route
-	e.GET("/ping", PingHandler)
+	e.GET("/", StatusHandler)
 
 	// Real route
 	e.POST("/api/v1/decrypt", DecryptDataHandler)

@@ -12,9 +12,8 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func PingHandler(c echo.Context) error {
-	log.Println("Hello PingHandler!")
-	return c.String(http.StatusOK, "Pong")
+func StatusHandler(c echo.Context) error {
+	return c.JSON(http.StatusOK, CFG)
 }
 
 // Real API Call starts here
