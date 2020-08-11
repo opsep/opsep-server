@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/labstack/echo/v4"
-	"gopkg.in/guregu/null.v3"
+	"gopkg.in/guregu/null.v4"
 )
 
 func StatusHandler(c echo.Context) error {
@@ -61,7 +61,7 @@ func DecryptDataHandler(c echo.Context) error {
 	requestSha256digest := SingleSHA256(string(cipherTextBytes))
 	log.Println("requestDigest", requestSha256digest)
 
-	if request.TriggerLimit == true || AllowThisDecryption() == false {
+	if request.TriggerLimit == true || AllowThisDecryption(1) == false {
 		// TODO: ping out to notify!
 
 		toReturn := decryptResponse{
@@ -172,20 +172,48 @@ func DecryptDataHandler(c echo.Context) error {
 	riskMultiplier, exists := dat["risk_multiplier"]
 	if exists == true {
 		log.Println("riskMultiplier", riskMultiplier, fmt.Sprintf("%T", riskMultiplier))
-		riskMultiplierInt, ok := riskMultiplier.(float64)
+		riskMultiplierFloat, ok := riskMultiplier.(float64)
 		if ok == false {
 			return HandleAPIError(c, nil, APIErrorResponse{
 				ErrName: "RiskMultiplierFormatError",
 				ErrDesc: "risk_multiplier must be an int",
 			})
 		}
-		riskMultiplierToInsert = null.IntFrom(int64(riskMultiplierInt))
+		if riskMultiplierFloat <= 0 {
+			return HandleAPIError(c, nil, APIErrorResponse{
+				ErrName: "RiskMultiplierNotPostive",
+				ErrDesc: "risk_multiplier must be positive",
+			})
+		}
+		riskMultiplierToInsert = null.IntFrom(int64(riskMultiplierFloat))
+	}
+
+	if riskMultiplierToInsert.Valid == true && riskMultiplierToInsert.Int64 > 0 && AllowThisDecryption(int(riskMultiplierToInsert.Int64)) == false {
+		// TODO: ping out to notify!
+
+		toReturn := decryptResponse{
+			// Do not decrypt
+			Plaintext: "", // "" nil value for a string field
+
+			// This is fine to return
+			PayloadSha256: requestSha256digest,
+
+			// Limit per window
+			RLLimit: GlobalLimiter.DecryptsAllowedPerPeriod,
+			// Remaining per window
+			RLRemaining: 0,
+			// Time (in s) until window resets
+			RLReset: GlobalLimiter.secondsToExpiry(),
+		}
+
+		log.Println("Returning 429...")
+		return c.JSON(http.StatusTooManyRequests, toReturn)
 	}
 
 	// Log this
 	// TODO: move to goroutine/queue for performance
 	log.Println("Logging to DB...")
-	APICallLog, err := LogAPICall(APICallLog{
+	_, err = LogAPICall(APICallLog{
 		RequestSha256Digest:   requestSha256digest,
 		RequestIPAddress:      c.RealIP(),
 		RequestUserAgent:      c.Request().UserAgent(),
@@ -200,7 +228,6 @@ func DecryptDataHandler(c echo.Context) error {
 			ErrDesc: "Error Logging Decryption Request",
 		})
 	}
-	log.Println("APICallLog created", APICallLog)
 
 	toReturn := decryptResponse{
 		Plaintext:     key_str_to_return,

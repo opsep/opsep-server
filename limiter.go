@@ -45,7 +45,13 @@ func (l *Limiter) secondsToExpiry() int {
 	}
 }
 
-func AllowThisDecryption() bool {
+func AllowThisDecryption(n int) bool {
+
+	// Safety check:
+	if n <= 0 {
+		return false
+	}
+
 	mu.Lock()
 	defer mu.Unlock()
 
@@ -54,10 +60,10 @@ func AllowThisDecryption() bool {
 		InitLimiter()
 	}
 
-	if GlobalLimiter.DecryptsUsedInPeriod >= GlobalLimiter.DecryptsAllowedPerPeriod {
+	if GlobalLimiter.DecryptsUsedInPeriod+n > GlobalLimiter.DecryptsAllowedPerPeriod {
 		return false
 	} else {
-		GlobalLimiter.DecryptsUsedInPeriod = GlobalLimiter.DecryptsUsedInPeriod + 1
+		GlobalLimiter.DecryptsUsedInPeriod = GlobalLimiter.DecryptsUsedInPeriod + n
 		return true
 	}
 
