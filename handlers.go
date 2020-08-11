@@ -34,7 +34,6 @@ type decryptResponse struct {
 }
 
 func DecryptDataHandler(c echo.Context) error {
-	log.Println("DecryptDataHandler hit")
 
 	request := new(decryptRequest)
 	err := c.Bind(request)
@@ -59,7 +58,6 @@ func DecryptDataHandler(c echo.Context) error {
 	}
 
 	requestSha256digest := SingleSHA256(string(cipherTextBytes))
-	log.Println("requestDigest", requestSha256digest)
 
 	if request.TriggerLimit == true || AllowThisDecryption(1) == false {
 		// TODO: ping out to notify!
@@ -94,8 +92,7 @@ func DecryptDataHandler(c echo.Context) error {
 			ErrDesc: err.Error(),
 		})
 	}
-
-	log.Println("length plaintextBytes", len(plaintextBytes))
+	// log.Println("length plaintextBytes", len(plaintextBytes))
 
 	var dat map[string]interface{}
 
