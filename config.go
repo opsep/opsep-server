@@ -68,7 +68,7 @@ func InitConfig() {
 	cfg := Config{
 		SQLiteFilePath:           defaultRead("SQLITE_FILEPATH", "opsep.sqlite3"),
 		SeverHost:                defaultRead("SERVER_HOST", "localhost"),
-		ServerPort:               defaultRead("SERVER_PORT", "80"),
+		ServerPort:               defaultRead("SERVER_PORT", "8080"),
 		RSAPrivKey:               privKey,
 		RSAPubKey:                string(pubBytes),
 		DecryptsAllowedPerPeriod: decryptsPerPeriodInt,
