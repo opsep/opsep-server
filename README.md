@@ -302,7 +302,7 @@ $ curl localhost:8080 | python3 -c "import sys, json; print(json.load(sys.stdin)
 ```
 
 ### Advanced Deployment Options 
-Other environmental variable options include `SQLITE_FILEPATH`, ``SERVER_HOST`, `SERVER_PORT`, `DECRYPTS_PER_PERIOD`, and `PERIOD_IN_SECONDS`.
+Other environmental variable options include `SQLITE_FILEPATH`, `SERVER_HOST`, `SERVER_PORT`, `DECRYPTS_PER_PERIOD`, and `PERIOD_IN_SECONDS`.
 See [config.go](config.go) for more info.
 
 
