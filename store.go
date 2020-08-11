@@ -16,7 +16,7 @@ var DB *sqlx.DB
 type APICallLog struct {
 	ServerLogID           int         `db:"id"`
 	CreatedAt             time.Time   `db:"created_at"`
-	RequestSha256Digest   string      `db:"request_sha256digest"`
+	RequestSha256Digest   string      `db:"request_sha256digest" json:"requestSHA256"`
 	RequestIPAddress      string      `db:"request_ip_address"`
 	RequestUserAgent      string      `db:"request_user_agent"`
 	ResponseDSha256Digest string      `db:"response_dsha256digest" json:"-"` // Not default surfaced for security (badly generated client plaintext could be brute-forced if leaked)

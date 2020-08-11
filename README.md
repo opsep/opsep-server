@@ -72,11 +72,11 @@ Make an API call to decrypt the file you just made (this is how your client libr
 ```bash
 $ curl -X POST localhost:8080/api/v1/decrypt -H 'Content-Type: application/json' -d '{"key_retrieval_ciphertext":"'$(echo $TO_DECRYPT)'"}' | python -m json.tool
 {
-    "key_recovered": "00000000000000000000000000000000",
-    "request_sha256": "1e16673d9b0bb33e7cfb84d6c0bf96970f3cfc34c4f7f41987bd624c0912f69a",
-    "ratelimit_limit": 100,
-    "ratelimit_remaining": 99,
-    "ratelimit_resets_in": 599
+    "keyRecovered": "00000000000000000000000000000000",
+    "requestSHA256": "1e16673d9b0bb33e7cfb84d6c0bf96970f3cfc34c4f7f41987bd624c0912f69a",
+    "ratelimitTotal": 100,
+    "ratelimitRemaining": 99,
+    "ratelimitResetsIn": 599
 }
 ```
 
@@ -149,14 +149,14 @@ You can make these count as multiple records for the purposes of your rate-limit
 $ TO_DECRYPT=$(echo "{\"key\":\"00000000000000000000000000000000\", \"risk_multiplier\":10}" | openssl pkeyutl -encrypt -pubin -inkey insecure_certs/crt.pub -pkeyopt rsa_padding_mode:oaep -pkeyopt rsa_oaep_md:sha256 -pkeyopt rsa_mgf1_md:sha256 | base64)
 $ curl -s -X POST localhost:8080/api/v1/decrypt -H 'Content-Type: application/json' -d '{"key_retrieval_ciphertext":"'$(echo $TO_DECRYPT)'"}' | python -m json.tool
 {
-    "key_recovered": "00000000000000000000000000000000",
-    "request_sha256": "33dac6df324b177ce26720eed545f97e69c9bce5e0caa083e62a665996509cec",
-    "ratelimit_limit": 100,
-    "ratelimit_remaining": 90,
-    "ratelimit_resets_in": 599
+    "keyRecovered": "00000000000000000000000000000000",
+    "requestSHA256": "33dac6df324b177ce26720eed545f97e69c9bce5e0caa083e62a665996509cec",
+    "ratelimitTotal": 100,
+    "ratelimitRemaining": 90,
+    "ratelimitResetsIn": 599
 }
 ```
-`ratelimit_remaining` correctly fell from `100` to `90` in one API decryption requests.
+`ratelimitRemaining` correctly fell from `100` to `90` in one API decryption requests.
 
 
 ### Client Record ID
@@ -166,11 +166,11 @@ Even easier, at the time of encryption you can save your local client record ID.
 $ TO_DECRYPT=$(echo "{\"key\":\"00000000000000000000000000000000\", \"client_record_id\":\"aaaaaaaa-0000-bbbb-1111-cccccccccccc\"}" | openssl pkeyutl -encrypt -pubin -inkey insecure_certs/crt.pub -pkeyopt rsa_padding_mode:oaep -pkeyopt rsa_oaep_md:sha256 -pkeyopt rsa_mgf1_md:sha256 | base64)
 $ curl -s -X POST localhost:8080/api/v1/decrypt -H 'Content-Type: application/json' -d '{"key_retrieval_ciphertext":"'$(echo $TO_DECRYPT)'"}' | python -m json.tool
 {
-    "key_recovered": "00000000000000000000000000000000",
-    "request_sha256": "6e7679934a8122b6f4e91d7a5da09e37dbc31777c714b23294eeb329a3a586cf",
-    "ratelimit_limit": 100,
-    "ratelimit_remaining": 99,
-    "ratelimit_resets_in": 599
+    "keyRecovered": "00000000000000000000000000000000",
+    "requestSHA256": "6e7679934a8122b6f4e91d7a5da09e37dbc31777c714b23294eeb329a3a586cf",
+    "ratelimitTotal": 100,
+    "ratelimitRemaining": 99,
+    "ratelimitResetsIn": 599
 }
 ```
 
@@ -266,11 +266,11 @@ Regular:
 ```bash
 $ curl -s -X POST localhost:8080/api/v1/decrypt -H 'Content-Type: application/json' -d '{"key_retrieval_ciphertext":"'$(echo "{\"key\":\"00000000000000000000000000000000\"}" | openssl pkeyutl -encrypt -pubin -inkey insecure_certs/crt.pub -pkeyopt rsa_padding_mode:oaep -pkeyopt rsa_oaep_md:sha256 -pkeyopt rsa_mgf1_md:sha256 | base64)'"}' | python -m json.tool
 {
-    "key_recovered": "00000000000000000000000000000000",
-    "request_sha256": "df9e875c1670896d1213f6fa401f12ce4bcfdc047d0ab050620f70626db53b89",
-    "ratelimit_limit": 100,
-    "ratelimit_remaining": 99,
-    "ratelimit_resets_in": 599
+    "keyRecovered": "00000000000000000000000000000000",
+    "requestSHA256": "df9e875c1670896d1213f6fa401f12ce4bcfdc047d0ab050620f70626db53b89",
+    "ratelimitTotal": 100,
+    "ratelimitRemaining": 99,
+    "ratelimitResetsIn": 599
 }
 ```
 
@@ -287,11 +287,11 @@ Fancy. In addition to `key` we include `deprecate_at`, `client_record_id`, and `
 ```bash
 $ curl -s -X POST localhost:8080/api/v1/decrypt -H 'Content-Type: application/json' -d '{"key_retrieval_ciphertext":"'$(echo "{\"key\":\"00000000000000000000000000000000\", \"deprecate_at\":\"2030-01-01T12:00:00Z\", \"client_record_id\":\"aaaaaaaa-0000-bbbb-1111-cccccccccccc\", \"risk_multiplier\":"3"}" | openssl pkeyutl -encrypt -pubin -inkey insecure_certs/crt.pub -pkeyopt rsa_padding_mode:oaep -pkeyopt rsa_oaep_md:sha256 -pkeyopt rsa_mgf1_md:sha256 | base64)'"}' | python -m json.tool
 {
-    "key_recovered": "00000000000000000000000000000000",
-    "request_sha256": "e505f29ab3da7fa6e02ef7cc2ff42bcef66cb4e2fff814ae8d36344306a07a40",
-    "ratelimit_limit": 100,
-    "ratelimit_remaining": 99,
-    "ratelimit_resets_in": 599
+    "keyRecovered": "00000000000000000000000000000000",
+    "requestSHA256": "e505f29ab3da7fa6e02ef7cc2ff42bcef66cb4e2fff814ae8d36344306a07a40",
+    "ratelimitTotal": 100,
+    "ratelimitRemaining": 99,
+    "ratelimitResetsIn": 599
 }
 ```
 

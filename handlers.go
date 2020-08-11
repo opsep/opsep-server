@@ -25,12 +25,12 @@ type decryptRequest struct {
 }
 
 type decryptResponse struct {
-	Plaintext     string `json:"key_recovered"`
-	PayloadSha256 string `json:"request_sha256"`
+	Plaintext     string `json:"keyRecovered"`
+	PayloadSha256 string `json:"requestSHA256"`
 	// RecoveredKeyDSha256 string `json:"decrypted_dsha256"`
-	RLLimit     int `json:"ratelimit_limit"`
-	RLRemaining int `json:"ratelimit_remaining"`
-	RLReset     int `json:"ratelimit_resets_in"`
+	RLLimit     int `json:"ratelimitTotal"`
+	RLRemaining int `json:"ratelimitRemaining"`
+	RLReset     int `json:"ratelimitResetsIn"`
 }
 
 func DecryptDataHandler(c echo.Context) error {
@@ -64,7 +64,7 @@ func DecryptDataHandler(c echo.Context) error {
 
 		toReturn := decryptResponse{
 			// Do not decrypt
-			Plaintext: "", // "" s the nil value for a string field
+			Plaintext: "", // nil value for a string field
 
 			// This is fine to return
 			PayloadSha256: requestSha256digest,
@@ -190,7 +190,7 @@ func DecryptDataHandler(c echo.Context) error {
 
 		toReturn := decryptResponse{
 			// Do not decrypt
-			Plaintext: "", // "" nil value for a string field
+			Plaintext: "", // nil value for a string field
 
 			// This is fine to return
 			PayloadSha256: requestSha256digest,
