@@ -53,6 +53,37 @@ $ curl -X POST localhost:8080/api/v1/decrypt -H 'Content-Type: application/json'
 }
 ```
 
+### Audit Logging:
+Calculate the hash of the file your decryption request:
+```bash
+$ echo $to_decrypt | base64 --decode | shasum -a 256
+55a80d54fd68dea27f4186a9f6466082f02af25939546d974eb19c3eee4e4114  -
+```
+(your result will be different, as asymmetric encryption uses a randomly generated nonce each time it is run)
+
+Query to see all past decrypts for a specific record:
+```bash
+$ curl localhost:8080/api/v1/logs/55a80d54fd68dea27f4186a9f6466082f02af25939546d974eb19c3eee4e4114 | python -m json.tool
+[
+    {
+        "ServerLogID": 18,
+        "CreatedAt": "2020-08-11T18:10:09Z",
+        "RequestSha256Digest": "55a80d54fd68dea27f4186a9f6466082f02af25939546d974eb19c3eee4e4114",
+        "RequestIPAddress": "127.0.0.1",
+        "RequestUserAgent": "curl/7.64.1",
+        "ClientRecordID": null,
+        "DeprecateAt": null,
+        "RiskMultiplier": null
+    }
+]
+
+```
+
+Worried about a breach? See all decrypts as CSV:
+```bash
+$ sqlite3 opsep.sqlite3 -header -csv 'SELECT * FROM api_calls;'
+```
+
 ### Key Deprecation
 Make your data auto-expire at a certain date (not that the data can still be recovered if you have your Key Encryption Key, but it is not defualt accessible via this service):
 ```bash
@@ -62,27 +93,6 @@ $ curl -X POST localhost:8080/api/v1/decrypt -H 'Content-Type: application/json'
     "error_name": "DeprecatedDecryptionKeyError",
     "error_description": "Key to decrypt this payload marked as deprecated."
 }
-```
-
-### Audit Logging:
-Calculate the hash of the file your decryption request:
-```bash
-$ echo $to_decrypt | base64 --decode | shasum -a 256
-3632dc12b3b03c4508ce7155941f249a2ec521c000619a345a7a186f7fa9e6f0  -
-```
-(your result will be different, as asymmetric encryption uses a randomly generated nonce each time it is run)
-
-Query to see all past decrypts for a specific record:
-```bash
-$ curl localhost:8080/api/v1/logs/3632dc12b3b03c4508ce7155941f249a2ec521c000619a345a7a186f7fa9e6f0
-[{"id":2,"created_at":"2020-08-10T23:14:40Z","request_ip_address":"127.0.0.1","request_user_agent":"curl/7.64.1"},{"id":3,"created_at":"2020-08-10T23:14:42Z","request_ip_address":"127.0.0.1","request_user_agent":"curl/7.64.1"}]
-```
-(this will look pretty-print if you append `| python -m json.tool`. Power users can check out [jq](https://stedolan.github.io/jq/)
-)
-
-Worried about a breach? See all decrypts as CSV:
-```bash
-$ sqlite3 opsep.sqlite3 -header -csv 'select * from api_calls;'
 ```
 
 ### Details
