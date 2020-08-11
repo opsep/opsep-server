@@ -26,8 +26,9 @@ writing RSA key
 ```bash
 $ RSA_PRIVATE_KEY="$(cat insecure_certs/pem.priv)" go run *.go
 ```
+(substitute your own private key)
 
-### Confirm Status
+### Confirm Server Online
 This will also output the public configuration (your RSA private key is never extracted):
 ```bash
 $ curl localhost:8080 
