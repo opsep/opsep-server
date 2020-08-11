@@ -145,11 +145,11 @@ func DecryptDataHandler(c echo.Context) error {
 			})
 		}
 		if time.Now().After(deprecate_at_t) == true {
+			// TODO: add some sort of admin notification of expired keys
 			return HandleAPIError(c, nil, APIErrorResponse{
 				ErrName: "DeprecatedDecryptionKeyError",
 				ErrDesc: "Key to decrypt this payload marked as deprecated.",
 			})
-
 		}
 	}
 
