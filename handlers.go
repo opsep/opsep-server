@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/base64"
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"strings"
@@ -95,9 +94,7 @@ func DecryptDataHandler(c echo.Context) error {
 		})
 	}
 
-	fmt.Println("length plaintextBytes", len(plaintextBytes))
-	responseDSHA256DigestHex := DSha256Hex(string(plaintextBytes))
-	log.Println("responseDigest", responseDSHA256DigestHex)
+	log.Println("length plaintextBytes", len(plaintextBytes))
 
 	var dat map[string]interface{}
 
@@ -159,7 +156,7 @@ func DecryptDataHandler(c echo.Context) error {
 		RequestSha256Digest:   requestSha256digest,
 		RequestIPAddress:      c.RealIP(),
 		RequestUserAgent:      c.Request().UserAgent(),
-		ResponseDSha256Digest: responseDSHA256DigestHex,
+		ResponseDSha256Digest: DSha256Hex(string(plaintextBytes)),
 	})
 	if err != nil {
 		return HandleAPIError(c, nil, APIErrorResponse{
