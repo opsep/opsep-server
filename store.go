@@ -7,18 +7,22 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	_ "github.com/mattn/go-sqlite3"
+	"gopkg.in/guregu/null.v3"
 )
 
 // DB global to pass around
 var DB *sqlx.DB
 
 type APICallLog struct {
-	ID                    int       `db:"id" json:"id"`
-	CreatedAt             time.Time `db:"created_at" json:"created_at"`
-	RequestSha256Digest   string    `db:"request_sha256digest" json:"-"`
-	RequestIPAddress      string    `db:"request_ip_address" json:"request_ip_address"`
-	RequestUserAgent      string    `db:"request_user_agent" json:"request_user_agent"`
-	ResponseDSha256Digest string    `db:"response_dsha256digest" json:"-"`
+	ServerLogID           int         `db:"id"`
+	CreatedAt             time.Time   `db:"created_at"`
+	RequestSha256Digest   string      `db:"request_sha256digest"`
+	RequestIPAddress      string      `db:"request_ip_address"`
+	RequestUserAgent      string      `db:"request_user_agent"`
+	ResponseDSha256Digest string      `db:"response_dsha256digest" json:"-"` // Not default surfaced for security (badly generated client plaintext could be brute-forced if leaked)
+	ClientRecordID        null.String `db:"client_record_id"`
+	DeprecateAt           null.Time   `db:"deprecate_at"`
+	RiskMultiplier        null.Int    `db:"risk_multiplier"`
 }
 
 func executeQuery(db *sqlx.DB, query string) (sql.Result, error) {
@@ -38,9 +42,13 @@ func createTables(db *sqlx.DB) {
 		id INTEGER PRIMARY KEY,
 		created_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
 		request_sha256digest VARCHAR(256) NOT NULL,
-		request_ip_address VARCHAR(256),
-		request_user_agent VARCHAR(256),
-		response_dsha256digest VARCHAR(256) NOT NULL
+		request_ip_address VARCHAR(256) NOT NULL,
+		request_user_agent VARCHAR(256) NOT NULL,
+		response_dsha256digest VARCHAR(256) NOT NULL,
+		-- optional fields
+		deprecate_at DATETIME,
+		client_record_id VARCHAR(256),
+		risk_multiplier SMALLINT
 	);`
 	_, err := executeQuery(db, query)
 	HandleErr(err)
@@ -54,20 +62,23 @@ func createTables(db *sqlx.DB) {
 	HandleErr(err)
 	_, err = executeQuery(db, "CREATE INDEX IF NOT EXISTS idx_response_dsha256digest ON api_calls (response_dsha256digest);")
 	HandleErr(err)
+	_, err = executeQuery(db, "CREATE INDEX IF NOT EXISTS idx_deprecate_at ON api_calls (deprecate_at);")
+	HandleErr(err)
+	_, err = executeQuery(db, "CREATE INDEX IF NOT EXISTS idx_client_record_id ON api_calls (client_record_id);")
+	HandleErr(err)
+	_, err = executeQuery(db, "CREATE INDEX IF NOT EXISTS idx_risk_multiplier ON api_calls (risk_multiplier);")
+	HandleErr(err)
 
 }
 
 func LogAPICall(db *sqlx.DB, apiCall APICallLog) (sql.Result, error) {
-	statement, err := db.Prepare("INSERT INTO api_calls (request_sha256digest, request_ip_address, request_user_agent, response_dsha256digest) VALUES (?, ?, ?, ?)")
-	if err != nil {
-		return nil, err
-	}
-	return statement.Exec(apiCall.RequestSha256Digest, apiCall.RequestIPAddress, apiCall.RequestUserAgent, apiCall.ResponseDSha256Digest)
+	query := `INSERT INTO api_calls (request_sha256digest, request_ip_address, request_user_agent, response_dsha256digest, deprecate_at, client_record_id, risk_multiplier) VALUES (:request_sha256digest, :request_ip_address, :request_user_agent, :response_dsha256digest, :deprecate_at, :client_record_id, :risk_multiplier)`
+	return db.NamedExec(query, apiCall)
 
 }
 
 func FetchDecryptionRecord(requestDSha256 string) ([]APICallLog, error) {
-	rows, err := DB.Queryx("SELECT id, created_at, request_ip_address, request_user_agent FROM api_calls WHERE request_sha256digest = ? ORDER BY id", requestDSha256)
+	rows, err := DB.Queryx("SELECT id, created_at, request_sha256digest, request_ip_address, request_user_agent, risk_multiplier FROM api_calls WHERE request_sha256digest = ? ORDER BY id", requestDSha256)
 	if err != nil {
 		return []APICallLog{}, err
 	}
