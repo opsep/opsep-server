@@ -188,7 +188,7 @@ func DecryptDataHandler(c echo.Context) error {
 		riskMultiplierToInsert = null.IntFrom(int64(riskMultiplierFloat))
 	}
 
-	if riskMultiplierToInsert.Valid == true && riskMultiplierToInsert.Int64 > 0 && AllowThisDecryption(int(riskMultiplierToInsert.Int64)) == false {
+	if riskMultiplierToInsert.Valid == true && riskMultiplierToInsert.Int64 > 1 && AllowThisDecryption(int(riskMultiplierToInsert.Int64)-1) == false {
 		// TODO: ping out to notify!
 
 		toReturn := decryptResponse{
@@ -201,7 +201,7 @@ func DecryptDataHandler(c echo.Context) error {
 			// Limit per window
 			RLLimit: GlobalLimiter.DecryptsAllowedPerPeriod,
 			// Remaining per window
-			RLRemaining: 0,
+			RLRemaining: GlobalLimiter.callsRemaining(),
 			// Time (in s) until window resets
 			RLReset: GlobalLimiter.secondsToExpiry(),
 		}

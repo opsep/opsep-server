@@ -63,7 +63,7 @@ func AllowThisDecryption(n int) bool {
 	if GlobalLimiter.DecryptsUsedInPeriod+n > GlobalLimiter.DecryptsAllowedPerPeriod {
 		return false
 	} else {
-		GlobalLimiter.DecryptsUsedInPeriod = GlobalLimiter.DecryptsUsedInPeriod + n
+		GlobalLimiter.DecryptsUsedInPeriod = (GlobalLimiter.DecryptsUsedInPeriod + n)
 		return true
 	}
 
