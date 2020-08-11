@@ -22,5 +22,5 @@ func main() {
 	e.POST("/api/v1/decrypt", DecryptDataHandler)
 	e.GET("/api/v1/logs/:request_dsha256", DecryptRequestLogHandler)
 
-	e.Logger.Fatal(e.Start(CFG.SeverHost + ":" + CFG.ServerPort))
+	e.Logger.Fatal(e.Start(CFG.ServerHost + ":" + CFG.ServerPort))
 }

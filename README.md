@@ -33,12 +33,12 @@ This will also output the public configuration (your RSA private key is never ex
 ```bash
 $ curl localhost:8080 
 {
-  "SQLiteFilePath": "opsep.sqlite3",
-  "SeverHost": "localhost",
-  "ServerPort": "8080",
-  "RSAPubKey": "-----BEGIN RSA PUBLIC KEY-----\nMIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEA7q4R3soRD2CrjL13OK6Y\nSBG8wpjP5sbfkL0QhpJMH87grlR2SS3CUnbYCOONzQiJ3OuKAViy/lMw1KsmG9Nn\nhAot2acg1iNyZRY33LR2jwmfFF+2iRp0itPQeOHY6GS8m3WLCMtC/kWUq0Bl5g1P\nYa9JXwSkTTRJunNH0TPk8uqwFeVhpT336M1H6ed105L8a8W3mpSwlwePron7pLf7\nwD32m9RT0nNdnHBDQCsUKS/Gdp+saLYWTgj0rpnQCe8f1p3g36Gm0gTzr3X0Adow\n8gIPfxO4HU/0cdL+Pw4mpcsWJ4531taRLLGb+a2la2zAUteYcS+8d4Nb8Omkbz39\nPylvKP6R1kHElqlF3BnwUp0AdcAvOLdeX8kYUlbKE8xwjHm/KwwleKlcAZDam7hC\nRw72JUQiod0E7My+SiZ3Ij5zKnxZXmAF5BX8T+YSqSzR4Qdp2QU9L9GgAZo/HPBN\nwME9v8usjEzrEItSSg3Nn10+J+ygsCqjrCT8CnSvD8wEyDSdO/Jly9DnWJ6B2HJE\nOc4wxWGFTCE0wiQOwC3IPNxFhuWun6/4tsEQcDs5XHaBXIHry5WCiVkjwa2pc95x\niXcfoQWr1A/jLe/MrZyN4yrgDK9mmQxxNzVfLj8S9NPjJMv+K7BKvtOmvoqsf13K\n6hYJGkAdR0d99DNFlllRm7cCAwEAAQ==\n-----END RSA PUBLIC KEY-----\n",
-  "DecryptsAllowedPerPeriod": 100,
-  "PeriodInSeconds": 600
+  "sqliteFilePath": "opsep.sqlite3",
+  "serverHost": "localhost",
+  "serverPort": "8080",
+  "rsaPubKey": "-----BEGIN RSA PUBLIC KEY-----\nMIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEA7q4R3soRD2CrjL13OK6Y\nSBG8wpjP5sbfkL0QhpJMH87grlR2SS3CUnbYCOONzQiJ3OuKAViy/lMw1KsmG9Nn\nhAot2acg1iNyZRY33LR2jwmfFF+2iRp0itPQeOHY6GS8m3WLCMtC/kWUq0Bl5g1P\nYa9JXwSkTTRJunNH0TPk8uqwFeVhpT336M1H6ed105L8a8W3mpSwlwePron7pLf7\nwD32m9RT0nNdnHBDQCsUKS/Gdp+saLYWTgj0rpnQCe8f1p3g36Gm0gTzr3X0Adow\n8gIPfxO4HU/0cdL+Pw4mpcsWJ4531taRLLGb+a2la2zAUteYcS+8d4Nb8Omkbz39\nPylvKP6R1kHElqlF3BnwUp0AdcAvOLdeX8kYUlbKE8xwjHm/KwwleKlcAZDam7hC\nRw72JUQiod0E7My+SiZ3Ij5zKnxZXmAF5BX8T+YSqSzR4Qdp2QU9L9GgAZo/HPBN\nwME9v8usjEzrEItSSg3Nn10+J+ygsCqjrCT8CnSvD8wEyDSdO/Jly9DnWJ6B2HJE\nOc4wxWGFTCE0wiQOwC3IPNxFhuWun6/4tsEQcDs5XHaBXIHry5WCiVkjwa2pc95x\niXcfoQWr1A/jLe/MrZyN4yrgDK9mmQxxNzVfLj8S9NPjJMv+K7BKvtOmvoqsf13K\n6hYJGkAdR0d99DNFlllRm7cCAwEAAQ==\n-----END RSA PUBLIC KEY-----\n",
+  "decryptsAllowedPerPeriod": 100,
+  "periodInSeconds": 600
 }
 ```
 
@@ -297,7 +297,7 @@ $ curl -s -X POST localhost:8080/api/v1/decrypt -H 'Content-Type: application/js
 ### Extract Public Key from Opsep Server
 To be sure that you're encrypting your data locally with the correct pubkey:
 ```bash
-$ curl localhost:8080 | python3 -c "import sys, json; print(json.load(sys.stdin)['RSAPubKey'].strip())" | awk '{gsub(/\\n/,"\n")}1' > crt.pub
+$ curl localhost:8080 | python3 -c "import sys, json; print(json.load(sys.stdin)['rsaPubKey'].strip())" | awk '{gsub(/\\n/,"\n")}1' > crt.pub
 ```
 
 ### Advanced Deployment Options 

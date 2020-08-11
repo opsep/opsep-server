@@ -12,13 +12,13 @@ import (
 )
 
 type Config struct {
-	SQLiteFilePath           string          `json`
-	SeverHost                string          `json`
-	ServerPort               string          `json`
+	SQLiteFilePath           string          `json:"sqliteFilePath"`
+	ServerHost               string          `json:"serverHost"`
+	ServerPort               string          `json:"serverPort"`
 	RSAPrivKey               *rsa.PrivateKey `json:"-"` // exclude from json response
-	RSAPubKey                string          `json`
-	DecryptsAllowedPerPeriod int             `json`
-	PeriodInSeconds          int             `json`
+	RSAPubKey                string          `json:"rsaPubKey"`
+	DecryptsAllowedPerPeriod int             `json:"decryptsAllowedPerPeriod"`
+	PeriodInSeconds          int             `json:"periodInSeconds"`
 }
 
 // CFG is an exportable single source of truth for config info & secrets
@@ -67,7 +67,7 @@ func InitConfig() {
 
 	cfg := Config{
 		SQLiteFilePath:           defaultRead("SQLITE_FILEPATH", "opsep.sqlite3"),
-		SeverHost:                defaultRead("SERVER_HOST", "localhost"),
+		ServerHost:               defaultRead("SERVER_HOST", "localhost"),
 		ServerPort:               defaultRead("SERVER_PORT", "8080"),
 		RSAPrivKey:               privKey,
 		RSAPubKey:                string(pubBytes),
