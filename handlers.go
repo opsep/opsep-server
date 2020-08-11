@@ -139,7 +139,7 @@ func DecryptDataHandler(c echo.Context) error {
 
 		deprecate_at_t, err := time.Parse(time.RFC3339, deprecate_at_str)
 		if err != nil {
-			return HandleAPIError(c, nil, APIErrorResponse{
+			return HandleAPIError(c, err, APIErrorResponse{
 				ErrName: "InvalidTimeError",
 				ErrDesc: "Key deprecation time format not valid (cannot parse)",
 			})
