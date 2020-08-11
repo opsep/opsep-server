@@ -120,16 +120,17 @@ $ curl -s -X POST localhost:8080/api/v1/decrypt -H 'Content-Type: application/js
 }
 ```
 
-Fancy:
+Fancy. In addition to `key` we include `deprecate_at`, `client_record_id`, and `risk_multiplier`):
 ```bash
-$ curl -s -X POST localhost:8080/api/v1/decrypt -H 'Content-Type: application/json' -d '{"key_retrieval_ciphertext":"'$(echo "{\"key\":\"00000000000000000000000000000000\", \"deprecate_at\":\"2030-01-01T12:00:00Z\", \"client_record_id\":\"aaaaaaaa-0000-bbbb-1111-cccccccccccc\", \"risk_multiplier\":3}" | openssl pkeyutl -encrypt -pubin -inkey insecure_certs/crt.pub -pkeyopt rsa_padding_mode:oaep -pkeyopt rsa_oaep_md:sha256 -pkeyopt rsa_mgf1_md:sha256 | base64)'"}' | python -m json.tool
+$ curl -s -X POST localhost:8080/api/v1/decrypt -H 'Content-Type: application/json' -d '{"key_retrieval_ciphertext":"'$(echo "{\"key\":\"00000000000000000000000000000000\", \"deprecate_at\":\"2030-01-01T12:00:00Z\", \"client_record_id\":\"aaaaaaaa-0000-bbbb-1111-cccccccccccc\", \"risk_multiplier\":"3"}" | openssl pkeyutl -encrypt -pubin -inkey insecure_certs/crt.pub -pkeyopt rsa_padding_mode:oaep -pkeyopt rsa_oaep_md:sha256 -pkeyopt rsa_mgf1_md:sha256 | base64)'"}' | python -m json.tool
 {
     "key_recovered": "00000000000000000000000000000000",
-    "request_sha256": "3dbafcc16d640137ab6c8cab645ca139262cba3270083e69dcc789a186589f9f",
+    "request_sha256": "e505f29ab3da7fa6e02ef7cc2ff42bcef66cb4e2fff814ae8d36344306a07a40",
     "ratelimit_limit": 100,
-    "ratelimit_remaining": 97,
-    "ratelimit_resets_in": 576
+    "ratelimit_remaining": 99,
+    "ratelimit_resets_in": 599
 }
+
 ```
 
 

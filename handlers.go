@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"strings"
@@ -87,7 +88,6 @@ func DecryptDataHandler(c echo.Context) error {
 		cipherTextBytes,
 		CFG.RSAPrivKey,
 	)
-	log.Println("Performed")
 	if err != nil {
 		return HandleAPIError(c, err, APIErrorResponse{
 			ErrName: "DecryptionFail",
@@ -164,7 +164,22 @@ func DecryptDataHandler(c echo.Context) error {
 				ErrDesc: "client_record_id must be a string",
 			})
 		}
-		clientRecordToInsert = null.NewString(clientRecordIDstr, true)
+		clientRecordToInsert = null.StringFrom(clientRecordIDstr)
+	}
+
+	// Extract client_record_id from decrypted payload
+	riskMultiplierToInsert := null.NewInt(1, false)
+	riskMultiplier, exists := dat["risk_multiplier"]
+	if exists == true {
+		log.Println("riskMultiplier", riskMultiplier, fmt.Sprintf("%T", riskMultiplier))
+		riskMultiplierInt, ok := riskMultiplier.(float64)
+		if ok == false {
+			return HandleAPIError(c, nil, APIErrorResponse{
+				ErrName: "RiskMultiplierFormatError",
+				ErrDesc: "risk_multiplier must be an int",
+			})
+		}
+		riskMultiplierToInsert = null.IntFrom(int64(riskMultiplierInt))
 	}
 
 	// Log this
@@ -177,6 +192,7 @@ func DecryptDataHandler(c echo.Context) error {
 		ResponseDSha256Digest: DSha256Hex(string(plaintextBytes)),
 		ClientRecordID:        clientRecordToInsert,
 		DeprecateAt:           deprecateAtToInsert,
+		RiskMultiplier:        riskMultiplierToInsert,
 	})
 	if err != nil {
 		return HandleAPIError(c, nil, APIErrorResponse{
