@@ -43,16 +43,25 @@ $ to_decrypt=$(echo "{\"key\":\"00000000000000000000000000000000\"}" | openssl p
 
 Make an API call to decrypt the file you just made:
 ```bash
-$ curl -X POST localhost:8080/api/v1/decrypt -H 'Content-Type: application/json' -d '{"key_retrieval_ciphertext":"'$(echo $to_decrypt)'"}'
-{"key_recovered":"00000000000000000000000000000000","request_sha256":"3632...e6f0","ratelimit_limit":100,"ratelimit_remaining":94,"ratelimit_resets_in":197}
+$ curl -X POST localhost:8080/api/v1/decrypt -H 'Content-Type: application/json' -d '{"key_retrieval_ciphertext":"'$(echo $to_decrypt)'"}' | python -m json.tool
+{
+    "key_recovered": "00000000000000000000000000000000",
+    "request_sha256": "1e16673d9b0bb33e7cfb84d6c0bf96970f3cfc34c4f7f41987bd624c0912f69a",
+    "ratelimit_limit": 100,
+    "ratelimit_remaining": 99,
+    "ratelimit_resets_in": 599
+}
 ```
 
 ### Key Deprecation
 Make your data auto-expire at a certain date (not that the data can still be recovered if you have your Key Encryption Key, but it is not defualt accessible via this service):
 ```bash
 $ to_decrypt=$(echo "{\"key\":\"00000000000000000000000000000000\", \"deprecate_at\":\"2020-01-01T12:00:00Z\"}" | openssl pkeyutl -encrypt -pubin -inkey insecure_certs/crt.pub -pkeyopt rsa_padding_mode:oaep -pkeyopt rsa_oaep_md:sha256 -pkeyopt rsa_mgf1_md:sha256 | base64)
-$ curl -X POST localhost:8080/api/v1/decrypt -H 'Content-Type: application/json' -d '{"key_retrieval_ciphertext":"'$(echo $to_decrypt)'"}'
-{"error_name":"DeprecatedDecryptionKeyError","error_description":"Key to decrypt this payload marked as deprecated."}
+$ curl -X POST localhost:8080/api/v1/decrypt -H 'Content-Type: application/json' -d '{"key_retrieval_ciphertext":"'$(echo $to_decrypt)'"}' | python -m json.tool
+{
+    "error_name": "DeprecatedDecryptionKeyError",
+    "error_description": "Key to decrypt this payload marked as deprecated."
+}
 ```
 
 ### Audit Logging:
