@@ -89,7 +89,7 @@ func DecryptDataHandler(c echo.Context) error {
 	if err != nil {
 		return HandleAPIError(c, err, APIErrorResponse{
 			ErrName: "DecryptionFail",
-			ErrDesc: err.Error(),
+			ErrDesc: err.Error() + " | Perhaps your data was encrypted with a different PubKey than " + CFG.RSAPubKey + " ?",
 		})
 	}
 	// log.Println("length plaintextBytes", len(plaintextBytes))
