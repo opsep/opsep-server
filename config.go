@@ -34,8 +34,8 @@ func defaultRead(envVar string, defaultVal string) (toSet string) {
 
 func InitConfig() {
 	log.Println("Generating configs...")
-
 	RSAPrivateKeyString := strings.TrimSpace(os.Getenv("RSA_PRIVATE_KEY"))
+
 	goodRSAPrefix := strings.HasPrefix(RSAPrivateKeyString, "-----BEGIN RSA PRIVATE KEY-----") == true
 	goodRSASuffix := strings.HasSuffix(RSAPrivateKeyString, "-----END RSA PRIVATE KEY-----") == true
 
@@ -67,8 +67,8 @@ func InitConfig() {
 
 	cfg := Config{
 		SQLiteFilePath:           defaultRead("SQLITE_FILEPATH", "opsep.sqlite3"),
-		ServerHost:               defaultRead("SERVER_HOST", "localhost"),
-		ServerPort:               defaultRead("SERVER_PORT", "8080"),
+		ServerHost:               os.Getenv("SERVER_HOST"), // will return "" (good) if not set
+		ServerPort:               defaultRead("PORT", "8080"),
 		RSAPrivKey:               privKey,
 		RSAPubKey:                string(pubBytes),
 		DecryptsAllowedPerPeriod: decryptsPerPeriodInt,
