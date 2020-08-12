@@ -219,7 +219,7 @@ func DecryptDataHandler(c echo.Context) error {
 		RiskMultiplier:        riskMultiplierToInsert,
 	})
 	if err != nil {
-		return HandleAPIError(c, nil, APIErrorResponse{
+		return HandleAPIError(c, err, APIErrorResponse{
 			ErrName: "DecryptionLoggingError",
 			ErrDesc: "Error Logging Decryption Request",
 		})
