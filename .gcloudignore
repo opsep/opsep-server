@@ -23,3 +23,8 @@
 *.test
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
+
+# I added:
+.DS_Store
+run_dev_server.sh
+*.sqlite3

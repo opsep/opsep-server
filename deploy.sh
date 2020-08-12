@@ -1,1 +1,1 @@
-date && time gcloud app deploy -q && date
+date && git push && time gcloud app deploy -q && date

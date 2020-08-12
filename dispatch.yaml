@@ -1,5 +1,5 @@
 # unsure exactly how this vs app.yaml work with GCP
 
 dispatch:
-  - url: "api.secondguard.com/*"
+  - url: "test.secondguard.com/*"
     service: api-sqlite
