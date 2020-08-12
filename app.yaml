@@ -14,6 +14,8 @@ automatic_scaling:
 # Insecure!
 env_variables:
   SQLITE_FILEPATH: ":memory:"
+  DECRYPTS_PER_PERIOD: 300
+  PERIOD_IN_SECONDS: 100
   RSA_PRIVATE_KEY: |
     -----BEGIN RSA PRIVATE KEY-----
     MIIJJwIBAAKCAgEA7q4R3soRD2CrjL13OK6YSBG8wpjP5sbfkL0QhpJMH87grlR2
