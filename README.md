@@ -51,7 +51,7 @@ See client info below.
 
 The proper way to use opsep is with a client library that abstracts away all these complexities.
 The information below is only for advanced users, for example those wishing to write their own client library (perhaps in a new langauge).
-You can check out the python opsep client [here](https://github.com/opsep/opsep-server)
+You can check out the python opsep client [here](https://github.com/opsep/opsep-python)
 
 ### Encryption
 
